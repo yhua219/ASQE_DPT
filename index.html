@@ -24,6 +24,11 @@
 
     <!--  custom CSS styles -->
     <style>
+        .wtoken {
+            padding: 1px 1px 1px 1px;  /*[top] [right] [bottom] [left]*/
+            line-height: 1.3;
+        }
+
         .popover {
             max-width: 300px !important;
         }
@@ -37,17 +42,17 @@
         }
         .wtoken span:not(.skip):not(.hover_pair):hover {
             background-color: #f4fb61;
-            opacity: 0.8;
-            font: bold 1.05rem "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            opacity: 1;
+            /*font: bold 1.05rem "Segoe UI", Roboto, "Helvetica Neue", Arial;*/
             cursor: pointer;
             transition: 0.2s;
-            padding: 2px 6px;
+            /*padding: 2px 6px;*/
             border-radius: 10px; /* for round corner */
             /* border-color: transparent !important;  */
         }
         .wtoken span.active {
             background-color: #f4fb61;
-            opacity: 0.8;
+            opacity: 1;
             font: bold 1.05rem "Segoe UI", Roboto, "Helvetica Neue", Arial;
             cursor: pointer;
             transition: 0.2s;
@@ -63,10 +68,10 @@
             line-height: 1; /* Adjust line-height for proper alignment */
         }
         /* The following annotation classes are automatically updated. The values 'Pos/Neg' etc. came from this.item.class,
-           The corresponding classes are automatically updated via 
+           The corresponding classes are automatically updated via
                             <span
                                 :id="item.tkid"
-                                :class="'a-' + item.class" ...> 
+                                :class="'a-' + item.class" ...>
         */
         /*.default_select_prompt{*/
         /*    background-color: aqua; !important;*/
@@ -92,37 +97,37 @@
         #rightClick_outer_options, #rightClick_inner_options {
             background-color: white !important;
             color: black !important;
-            padding: 2px 2px 1px 2px;
+            padding: 2px 2px 2px 2px;
             display: inline-block;
         }
 
         .a-Pos, .a-Pos-Overall {
             background-color: #78b389 !important;  /* #78b389 */
             color: black !important;
-            padding: 2px 2px 1px 2px;
+            padding: 2px 2px 2px 2px;
             display: inline-block;
         }
         .a-Neu, .a-Neu-Overall {
             background-color: #6c757d !important;
             color: white !important;
-            padding: 2px 2px 1px 2px;
+            padding: 2px 2px 2px 2px;
             display: inline-block;
         }
         .a-Neg, .a-Neg-Overall {
             background-color: #b32357 !important;  /* #b32357 */
             color: white !important;
-            padding: 2px 2px 1px 2px;
+            padding: 2px 2px 2px 2px;
             display: inline-block;
         }
         .a-Asp {
             font: bold 1.05rem "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: black !important;
             border: 1px solid black;
-            padding: 1px 1px 2px 1px;
+            padding: 1px 2px 2px 2px; /*[top] [right] [bottom] [left]*/
             display: inline-block; /* Makes the span a block-level element to apply the border */
         }
         .a-Pos:not(.linked), .a-Neu:not(.linked), .a-Neg:not(.linked) {
-            border: 6px solid cyan !important;
+            border: 4px solid cyan !important;
         }
         .a-Asp:not(.linked) {
             background-color: cyan !important;  /* #f4fb61 */
@@ -130,16 +135,10 @@
         .a-Asp.hover_pair{
             background-color: yellow !important;
             color: black !important;
-            /*opacity: 0.8;*/
-            /*cursor: pointer;*/
-            /*!*transition: 0.2s;*!*/
-            /*padding: 2px 6px;*/
-            /*border-radius: 10px; !* for round corner *!*/
         }
         .a-Pos.hover_pair, .a-Neu.hover_pair, .a-Neg.hover_pair {
-            border: 4px solid yellow !important;
+            outline: 4px solid yellow !important;
         }
-
 
     </style>
 
@@ -148,7 +147,8 @@
 <div id='ABSADPT'>
     <div class="container table-responsive">
         <br>
-        <h4>ASQE_DPT: A multi-task manual data annotation tool for ABSA <a href="https://github.com/yhua219/ABSADatasets" target="_blank">(info)</a></h4>
+        <h4>ASQE_DPT: A multi-task manual data annotation tool for ABSA <a href="https://github.com/yhua219/edurabsa_dataset_and_annotation_tool?tab=readme-ov-file#the-asqe-dpt-data-processing-tool" target="_blank">(info)</a></h4>
+        <div v-show="tableReady">Using file: {{filename}}</div>
         <br>
         <div class="row">
             <div class="col">
@@ -189,7 +189,7 @@
     <!-- Table & annotation page -->
     <div class="table-responsive" v-show="tableReady">
 
-        <div class="row justify-content-lg-between align-items-center" style="padding-bottom: 0rem;">
+        <div class="row justify-content-lg-between align-items-center" style="padding-bottom: 0rem; line-height: 0px;">
             <!-- Row 1 left: Total pages and total rows -->
             <div class="col d-flex justify-content-start">
                 <P>Total pages = {{totalPages}} &nbsp; &nbsp; Total rows = {{totalRows}}</P>
@@ -253,6 +253,11 @@
                     <th scope="col">ID</th>
                     <th scope="col">Text</th>
                     <th scope="col">Overall</th>
+                    <!-- New 'Checked' column with a header checkbox -->
+                    <th scope="col"  style="text-align: center;">
+                        Checked
+                        <input type="checkbox" :checked="allChecked" @change="updateRowCheckBox" style="width: 20px; height: 20px;"> <!-- headerCheckbox -->
+                    </th>
                 </tr>
             </thead>
 
@@ -293,6 +298,12 @@
                             <option class="a-Neu-Overall" value="Neu">Neutral</option>
                             <option class="a-Neg-Overall" value="Neg">Negative</option>
                         </select>
+                    </td>
+
+                    <!-- New 'Checked' column with checkboxes for each row -->
+                    <td style="width:50px; text-align: center;">
+                        <input type="checkbox" v-model="rowArrays['checked']" @change="updateHeaderCheckBox" style="width: 20px; height: 20px;">
+<!--                        <input type="checkbox" v-model="rowArrays['checked']" style="width: 20px; height: 20px;">-->
                     </td>
                 </tr>
             </tbody>
@@ -346,54 +357,46 @@
 </div>
 
 <!-- Example data structure: ----------------------------------
-
         ===================================================
         1) One array from processData(row) ->  rows.data):
         ---------------------------------------------------
-        0: ['hello  word !']
+        0: ['hello  world !']
 
         ===================================================
         2) In HTML <tr v-for="(rowArrays, rowIndices) in displayedRows"..>:
         ---------------------------------------------------
         rowIndices: 1   (rowIndices = rvid)
-
         rowArrays: {
+        "1": {
             "rvid": 1,
             "rvarr": {
-                "0": { "tkid": "R1_0", "tk": "hello" },
-                "1": { "tkid": "R1_1", "tk": "" },
-                "2": { "tkid": "R1_2", "tk": "word" },
-                "3": { "tkid": "R1_3", "tk": "!" }
+                "0": {"tkid": "R1_0", "tk": "hello"},
+                "1": {"tkid": "R1_1", "tk": "world"},
+                "2": {"tkid": "R1_2", "tk": "!"}
             },
             "Overall": ""
+            },
         }
-
         ===================================================
         3) in HTML <template v-for="(item, index) in rowArrays.rvarr" ...>
+        (Depends on how many stpes of annotation has been performed):
         ---------------------------------------------------
         index: 0
-        item: { "tkid": "R1_0", "tk": "hello", "label": "Asp", "annotated": true}
+        item: {"tkid": "R1_0", "tk": "hello", "itemType": "Opn", "class": "Pos", "sentiment": "Pos", "annotated": true, "linked": true, "pairID": "R1_1", "pairIDStr": "1"}
         item.tk: 'hello'
 
         index: 1
-        item: { "tkid": "R1_1", "tk": "" }
+        item: {"tkid": "R1_1", "tk": "world", "annotated": true, "itemType": "Asp", "class": "Asp", "sentiment": "Pos", "linked": true, "pairID": "R1_0", "pairIDStr": "0"}
         item.tk: ''
 
         index: 2
-        item: { "tkid": "R1_2", "tk": "word", "label": "Pos", "annotated": true}
-        item.tk: 'world'
-
-        index: 3
-        item: { "tkid": "R1_3", "tk": "!" }
-        item.tk: '!'
+        item: {"tkid": "R1_2", "tk": "!"}
 
         ===================================================
         4) in tokenHighlight(): (when clicking on "hello")
         ---------------------------------------------------
         this.targetSpan = event.target =
-        <span id="R1_0" class="a-Asp active" data-bs-original-title="" title="" aria-describedby="popover676471">
-            hello
-        </span>
+        <span id="R1_1" class="a-Asp linked" data-bs-original-title="" title="" aria-describedby="popover74104">  world</span>
 -------------------------------------------------------------- -->
 
 <script>
@@ -404,9 +407,19 @@
     const ABSADPT = Vue.createApp({
         data() {
             return {
+                auto_input_data: null,
+                processed_auto_input_data: null,
+                has_auto_input: false,
+                filename: null,
+
+                rawABSAData: [],
+                preABSAData: [],
+                processedABSAData: [],
+
                 dataReady: false,
                 tableReady: false,
                 vConFooter: true,
+                allChecked: false,  // State for the header checkbox
 
                 currPage: 1,
                 rowsPerPage: 10,
@@ -427,16 +440,7 @@
 
                 sentimentClass: ['Pos', 'Neu', 'Neg'],
                 labelClass: ['Asp', 'Pos', 'Neu', 'Neg'],
-                // aspectCategory: {
-                //     'Course': ['Design', 'Content', 'Assessment', 'Pace', 'Difficulty'],
-                //     'Staff': ['Teaching skill', 'Knowldge', 'Helpfulness'],
-                //     'General': ['Facilities', 'Support & information', 'Services', 'Social engagement']
-                // },
                 attributeList: ['annotated', 'category', 'categorised', 'separate', 'itemType', 'linked', 'sentiment', 'class', 'pairID', 'pairIDStr'],
-
-                rawABSAData: [],
-                preABSAData: [],
-                processedABSAData: [],
 
                 tooltipPopover: null,
                 tooltipTemplate:  `
@@ -487,6 +491,10 @@
             // if (tooltipTriggerEl) {
             //     new bootstrap.Tooltip(tooltipTriggerEl);
             // }
+            if (this.auto_input_data && this.has_auto_input) {
+                this.handle_auto_input(this.auto_input_data);
+            };
+
         },
 
         beforeUnmount() { // Remove global event listener
@@ -511,6 +519,8 @@
                 }
                 return selected;
             },
+
+
             displayedPages() {
                 const maxPagesToShow = 10;
                 const startPage = Math.max(1, this.currPage - Math.floor(maxPagesToShow / 2));
@@ -539,6 +549,11 @@
         //======================================================================================
         // watch gets automatically called the function-name variables change
         watch: {
+
+            displayedRows() {
+                this.updateHeaderCheckBox();
+            },
+
             popover() {
                 if (this.popoverType !== 'categoryDisplay') {
                     //------- register EventListeners to pickup popover button clicks --------
@@ -618,6 +633,20 @@
                 return `form-select form-select-sm ${!v ? '' : `OverallMarked a-${v}-Overall`}`;
             },
 
+            updateRowCheckBox() {
+                // Set all displayed rows to the header checkbox state
+                // Iterate over the displayedRows using Object.values()
+                this.allChecked = !this.allChecked;
+                Object.values(this.displayedRows).forEach((row) => {
+                    row.checked = this.allChecked;
+                });
+            },
+
+            updateHeaderCheckBox() {
+                // update "Checked" column header checkbox, true if all rows are checked, otherwise false
+                this.allChecked = Object.values(this.displayedRows).every(row => row.checked === true);
+            },
+
             //==============================================================================
             // calls a Boostrap popover when a token is RIGHT-clicked. Triggered by the html @contextmenu
             showTooltip() {
@@ -674,7 +703,6 @@
             handleMouseOver(rowIndex, rowArray, item, index) {
                 const targetSpan = event.target;
                 item = rowArray[index];
-                // const linkedPair = document.querySelectorAll(`span[pairID="${this.item.tkid}"]`);  // Get all span elements whose pairID attribute equals item.id
 
                 if (item.hasOwnProperty('linked')) {
                     targetSpan.classList.add('hover_pair');
@@ -683,11 +711,11 @@
                     linkedSpan.classList.add('hover_pair');
 
                     const linkedItem = _.find(rowArray, {tkid: item.pairID.split(',')[0]});
-                    if (linkedItem.itemType === 'Opn' && linkedItem.hasOwnProperty('categorised') && !this.popoverInUse) {
+                    if ((linkedItem.itemType === 'Opn' || linkedItem.itemType === 'Asp') && linkedItem.hasOwnProperty('categorised') && !this.popoverInUse) {
                         this.showCategoryPopover(linkedSpan, linkedItem.category);
                     }
                 }
-                if (item.itemType === 'Opn' && item.hasOwnProperty('categorised') && !this.popoverInUse) {
+                if ((item.itemType === 'Opn' || item.itemType === 'Asp') && item.hasOwnProperty('categorised') && !this.popoverInUse) {
                     this.showCategoryPopover(targetSpan, item.category);
                 }
             },
@@ -699,7 +727,6 @@
                     targetSpan.classList.remove('hover_pair');
                     const linkedPair = document.getElementById(item.pairID.split(',')[0]);  // Get all span elements whose pairID attribute equals item.id
                     linkedPair.classList.remove('hover_pair');
-                    // linkedPair.forEach(element => {element.classList.add('hover_pair');});
                 }
                 if (this.popover && this.popoverType === 'categoryDisplay') {
                     this.closePopover();
@@ -721,9 +748,10 @@
                 this.item = rowArray[index];
 
                 // If the item is Aspect and the current token hasn't been categorised, show aspectCategory popover,
-                if (this.item.itemType === 'Opn' && !this.popoverInUse) {
+                if ((this.item.itemType === 'Opn' || this.item.itemType == 'Asp') && !this.popoverInUse) {
                     this.popoverType = 'aspectCategory';
                     this.popover = this.createPopover(this.targetSpan, this.popoverType);
+                    this.popoverInUse = true;
                     this.popover.show();
                 }
             },
@@ -789,11 +817,9 @@
                 const isOpn = this.item.hasOwnProperty('annotated') && this.item.itemType === 'Opn';
                 const linkingOpn = this.itemToLink && this.itemToLink.itemType === 'Asp' && this.itemToLink.hasOwnProperty('linking');
                 const linked = this.item.hasOwnProperty('linked') && this.item.linked;
-                const categorised = this.item.hasOwnProperty('category') && isAnnotated && this.item.itemType === 'Asp';
+                const categorised = this.item.hasOwnProperty('category') && isAnnotated && (this.item.itemType === 'Opn' || this.item.itemType === 'Asp');
                 const currCategory = this.item.hasOwnProperty('category')? this.item.category.split("-")[0]: null;
                 const currSubCategory = this.item.hasOwnProperty('category')? this.item.category.split("-")[1]: null;
-
-                // console.log(".........", this.item);
 
                 // Popover content 'container' to be rendered properly via popoverTemplateCompiler
                 const popoverContent = document.createElement('div');
@@ -848,7 +874,6 @@
                       <div id="rightClickPanel" class="btn-group d-flex justify-content-center" role="group" @click.stop>
                           <!-- First Dropdown (Outer) -->
                           <select id="rightClick_outer" class="background-color: red;" aria-label=".form-select-sm" v-model="selectedCategory" @change="updateSubcategories">
-<!--                            <option class="default_select" value="">Category...</option>-->
                             <option id="rightClick_outer_prompt" v-if="!${categorised}" value="">Category...</option>
                             <option v-if="${categorised} && !categoryChanged" class="default_select_prompt" value="">${currCategory}</option>
                             <!-- Dynamically populate keys from aspectCategory object -->
@@ -867,8 +892,6 @@
 
                 // Decide which template to use for popover body content
                 let popoverContentHTML = popoverType === 'action'? actionTemplate : isAnnotated? clearOrLinkTemplate : highlightTemplate;
-                // const popoverContentHTML = popoverType === 'action'? actionTemplate : isAnnotated? clearOrLinkTemplate : highlightTemplate;
-                // const popoverContentHTML = popoverType === 'action'? actionTemplate : isAnnotated? clearOrLinkTemplate : popoverType==='aspectCategory'? aspectCategoryTemplate: highlightTemplate;
                 if (popoverType === 'aspectCategory') {
                     popoverContentHTML = aspectCategoryTemplate;
                 }
@@ -891,15 +914,11 @@
                             opinionClicked: false,
                             aspectClicked: false,
                             sentimentClicked: false,
-                            // aspectCategory: {
-                            //     'Course': ['Design', 'Content', 'Assessment', 'Pace', 'Difficulty'],
-                            //     'Staff': ['Teaching skill', 'Knowledge', 'Helpfulness'],
-                            //     'General': ['Facilities', 'Support & information', 'Services', 'Social engagement']
-                            // },
                             aspectCategory: {
-                                    'Course': ['Design', 'Content', 'Learning activity', 'Assessment', 'Workload', 'Difficulty', 'Technology & tools'],
-                                    'Staff': ['Teaching', 'Knowledge', 'Helpfulness', 'Attitude', 'Other'],
-                                    'General': ['Facilities', 'Support & information', 'Services', 'Social engagement', 'Overall']
+                                '-':['-'],
+                                'Course': ['Content', 'Learning activity', 'Assessment', 'Workload', 'Difficulty', 'Course materials', 'Technology & tools', 'Overall'],
+                                'Staff': ['Teaching', 'Knowledge & skills', 'Helpfulness', 'Attitude', 'Personal traits', 'Overall'],
+                                'University': ['Cost', 'Opportunities', 'Programme', 'Campus & facilities', 'Culture & diversity', 'Information & Services', 'Social engagement & activities', 'Overall']
                             },
                             selectedCategory: '',       // For the first select (key)
                             subcategories: [],         // Dynamically populated based on selectedCategory
@@ -1096,9 +1115,14 @@
             rightClickSelectHandler(event){
                 const id = event.target.id;
                 if (id === 'rightClick_outer'){
-                    this.item.categorised = false;
+                    this.item['categorised'] = false;
                     this.popoverInUse = true;
-                } else if (id === 'rightClick_inner'){
+                    if (document.getElementById('rightClick_outer').value === '-') {
+                        delete this.item['categorised'];
+                        delete this.item['category'];
+                        this.closePopover();
+                    }
+                } else if (id === 'rightClick_inner') {
                     this.item['category'] = `${document.getElementById('rightClick_outer').value}-${document.getElementById('rightClick_inner').value}`;
                     this.item['categorised'] = true;
                     this.closePopover();
@@ -1197,7 +1221,14 @@
             //==============================================================================
 
             reloadPage() {
-                window.location.reload();
+                this.auto_input_data = null;
+                this.has_auto_input = false;
+                this.filename = null;
+                this.rawABSAData = [];
+                this.preABSAData = [];
+                this.processedABSAData = [];
+                this.dataReady = false;
+                this.tableReady = false;
             },
 
             loadFile() {
@@ -1211,7 +1242,7 @@
                     return;
                 } else {
                     const inputfile = fileList[0];
-                    console.log(`Using file "${inputfile.name}"`);
+                    this.filename = inputfile.name;
 
                     if (inputfile.name.split('.').pop()==='json') {
                         this.readJsonFile(inputfile);
@@ -1221,9 +1252,45 @@
                 }
             },
 
+            handle_auto_input() {
+                //------------------------------------------
+                // parses the json string auto-assigned to this.auto_input_data,
+                // updates this.preABSAData and display-related variables
+                //-------------------------------------------
+                if (this.auto_input_data) {
+                    const rawJson = this.auto_input_data;
+
+                    // Add a trailing space to the token before an annotated token
+                    const jsonData = _.mapValues(rawJson, item => {
+                        let previousRvarrItem = null;
+                        return {
+                            ...item,
+                            rvarr: _.mapValues(item.rvarr, (rvarrItem, key) => {
+                                let updatedRvarrItem = {
+                                    ...rvarrItem,
+                                    tk: rvarrItem.tk.trim()
+                                };
+                                if (rvarrItem.annotated && previousRvarrItem) {
+                                    previousRvarrItem.tk += ' ';
+                                }
+                                previousRvarrItem = updatedRvarrItem;
+                                return updatedRvarrItem;
+                            })
+                        };
+                    });
+
+                    this.totalRows = _.keys(jsonData).length;
+                    this.preABSAData = jsonData;
+                    this.processed_auto_input_data = _.cloneDeep(jsonData);  // deepclone to preserve a true copy, otherwise will change with preABSAData
+                    this.dataReady = true;
+                    this.displayTable();
+                }
+            },
+
             readJsonFile(file) {
                 //------------------------------------------
-                // read a json file exported from this app,
+                // read a json file representing the app's backend data
+                // (Can be the same file exported from this app),
                 // directly updates this.preABSAData & renders previous annotation
                 //-------------------------------------------
                 let reader = new FileReader();
@@ -1323,21 +1390,64 @@
                             rvid: parseInt(key) + 1,
                             rvarr: rvarr,
                             Overall: "",
+                            checked: false,
                         };
                         return result;
                     }, {});
+
+                    // Set the initial header checkbox state after processing
+                    this.updateHeaderCheckBox();
                 }
             },
 
     //==============================================================================
+            // helper function for saveJSON://
+
+            // helper function that returns "FULL_checked", "some_checked", or empty string
+            // based on number of items with checkbox ticked
+            hasCheckedTrue(obj) {
+                let totalItems = 0;
+                let checkedCount = 0;
+
+                // Iterate through the object's top-level keys
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key) && typeof obj[key] === 'object' && obj[key] !== null) {
+                        totalItems++; // Increment the count of total items
+                        // Check if "checked" is true in the nested object
+                        if (obj[key].checked === true) {
+                            checkedCount++; // Increment the count of checked items
+                        }
+                    }
+                }
+
+                // Determine the result based on checkedCount and totalItems
+                if (checkedCount === totalItems && totalItems > 0) {
+                    return "_(FULL_checked)"; // All items are checked
+                } else if (checkedCount > 0) {
+                    return `_(${checkedCount}_checked)`; // Some items are checked
+                } else {
+                    return ""; // No items are checked
+                }
+            },
+
             saveJSON(event) {
                 //===========================
-                // Export progress file to continue after upload
+                // Export progress /back-end json file that can be uploaded with annotations
+
                 let JSONworkingFile = JSON.stringify(this.preABSAData);
 
                 const dateStr = new Date().toISOString().split('T')[0];  // Get current date in yyyy-mm-dd format
-                const file_name = `ASQE_DPT_Progress_File_${dateStr}.json`;
 
+                // dynamically update filename if there is any annotation change or checkbox change
+                let file_name = (this.filename && (this.filename.endsWith(".json")))? this.filename: `ASQE_DPT_Progress_File_${dateStr}.json`;
+
+                let checkStr = this.hasCheckedTrue(this.preABSAData);
+                if (checkStr.length > 0) {
+                    file_name = file_name.replace(".json", `${checkStr}.json`);
+                } else if (this.has_auto_input && JSON.stringify(this.processed_auto_input_data) !== JSON.stringify(this.preABSAData)) {
+                    file_name = file_name.replace(".json", `_(changed).json`);
+                }
+                //////////////////////////////////////////////////////////////////////////////////////
                 let blob = new Blob([JSONworkingFile], {type: "application/json"});
                 const saveAs = window.saveAs;
                 saveAs(blob, file_name);
@@ -1347,9 +1457,40 @@
                 //============================================================================
                 // iterate through all row arrays, prepare ASC and ASTE source data in one go
                 //============================================================================
+                // The loop below takes each review (row), gets its tokens (row.rvarr), and converts those tokens from an object to an array using _.values().
+                //
+                // A "row" represents one complete review from preABSAData, looks like this
+                //    { "rvid": "1", "original_id": "2_10927_873", "Overall": "Pos",
+                //      "rvarr": {"0": { "tkid": "R1_0", "tk": "Hello" ...}, "1": { "tkid": "R1_1", "tk": "World" }...},
+                //      "checked": true}
+                //
+                // An "Item" represents the ENTIRE array of tokens for One review, look like this:
+                //    [
+                //        { "tkid": "R1_0", "tk": "Extremely straightforward", ... },
+                //        { "tkid": "R1_1", "tk": "" },
+                //        ...
+                //    ]
+
                 let resultData = _.chain(_.values(this.preABSAData))  // get the values of the nested objects
                     .map((row) => _.map(_.values((row.rvarr))))  // get the 'rvarr' row arrays
                     .map((item) => {  // for each token array 'item' inside all the row arrays
+
+                    // For non-span-tagging use cases, do NOT add a space before punctuation:
+                    const rawSentence = item.map((v, i) => {
+                        const token = v.tk.trim();
+                        if (token.length === 0) return '';
+                        // If it's the first token OR the token is punctuation/symbol, don't prepend a space.
+                        return i === 0 || token.match(/^[\p{P}\p{S}]+$/u) ? token : ` ${token}`;
+                      }).join('').trim();
+
+                    // For span-tagging annotations, the reconstructed review text must align with that displayed during annotation.  I.e. Add a space before punctuation:
+                    const rawSentence_for_spantagging = item.map((v, i) => {
+                        const token = v.tk.trim();
+                        if (token.length === 0) return '';
+                        // Prepend a space to everything except the first token of a sentence for ASTE, this is to match the annotation display for correct token position index mapping.
+                        return i === 0 ? token : ` ${token}`;
+                      }).join('').trim();
+
 
                         // construct the original sentence.  Replace aspect-token with $T$ and opinion token with $O$
                         let annotatedIndices = _.keys(_.pickBy(item, { annotated: true }));
@@ -1357,8 +1498,17 @@
                         let ASCTempOutput = [];
                         let ASQETempOutput = [];
 
-                        const rawSentence = item.map((v, i) => (v.tk.trim().length === 0 ? '' : i === 0 || v.tk.match(/^[\p{P}\p{S}]+$/gu) ? v.tk.trim() : ` ${v.tk.trim()}`)).join('').trim();  // add a space in front of token if not the first token or punctuation
-                        // if no annotation on text, return original sentence
+                        const rowId = item[0].tkid.split('_')[0].replace('R', '');  // "R23_1" -> "23"
+                        const currRow = this.preABSAData[rowId]
+                        let currentJsonOutput = {
+                            id: rowId,
+                            original_id: currRow.original_id,   // Get from current row
+                            text: rawSentence,
+                            Quadruplets: [],
+                            overall_sentiment: currRow.Overall || ""  // Get from current row
+                        };
+
+                       // if no annotation on text, return original sentence
                         if (_.size(annotatedIndices) == 0) {
                             ASCTempOutput.push({ sentence: rawSentence, sentiment: [] });
                             ASTETempOutput.push({ sentence: rawSentence, triplets: [] });
@@ -1369,32 +1519,90 @@
                             let triplets = [];
                             let quadruplets = [];
 
-                            //iterating through each item (i.e. sentence or row), update annotated tokens with the mask string
                             _.each(annotatedIndices, (tkIdx) => {
                                 let temp = _.chain(vCopy)
                                     .map((wtk, i) => {
-                                        tkidStr = wtk.tkidStr? wtk.tkidStr : wtk.tkid.split('_')[1];
-                                        pairIDStr = !wtk.linked ? null : wtk.pairIDStr;
+                                        let tkidStr = wtk.tkidStr? wtk.tkidStr : wtk.tkid.split('_')[1];
+                                        let pairIDStr = !wtk.linked ? null : wtk.pairIDStr;
 
-                                        if (wtk.itemType === 'Asp' && i == +tkIdx) {
-                                            wtk.tkFinal = '$T$'; // mask aspect token with $T$
-                                            // create triplet entry for this aspect token and its linked opinion
-                                            triplets.push(`([${tkidStr}], [${pairIDStr}], '${_.toUpper(wtk.sentiment)}')`);
-                                            quadruplets.push(`([${tkidStr}], [${pairIDStr}], null, '${_.toUpper(wtk.sentiment)}')`);
-                                        } else if (wtk.itemType === 'Opn' && i == +tkIdx) {
-                                            wtk.tkFinal = '$O$'; // mask opinion token with $O$
-                                            // create triplet entry for this Opinion token and its linked Aspect
-                                            triplets.push(`([${pairIDStr}], [${tkidStr}], '${_.toUpper(wtk.sentiment)}')`);
-                                            quadruplets.push(`([${tkidStr}], [${pairIDStr}], '${_.toUpper(wtk.category)}'), '${_.toUpper(wtk.sentiment)}')`);
+                                        if ((wtk.itemType === 'Asp' || wtk.itemType === 'Opn') && i == +tkIdx) {
+                                            wtk.tkFinal = wtk.itemType === 'Asp' ? '$T$' : '$O$';
+                                            const newTriplet = wtk.itemType === 'Asp' ? `([${tkidStr}], [${pairIDStr}], '${_.toUpper(wtk.sentiment)}')` :
+                                                `([${pairIDStr}], [${tkidStr}], '${_.toUpper(wtk.sentiment)}')`;
+
+                                            const linkedPair = wtk.pairID ? _.find(vCopy, (item) => item.tkid === wtk.pairID) : null;
+                                            const category = wtk.category ? _.toUpper(wtk.category) :
+                                                (linkedPair && linkedPair.category ? _.toUpper(linkedPair.category) : '');
+
+                                            // Get quadruplets from both Asp and Opn, resolve duplicates later. This handles various 1:many mapping scenarios
+                                            const newQuadruplet = (wtk.itemType === 'Asp') ? `([${tkidStr}], [${pairIDStr}], '${category}', '${_.toUpper(wtk.sentiment)}')` :
+                                                (wtk.itemType === 'Opn') ? `([${pairIDStr}], [${tkidStr}], '${category}', '${_.toUpper(wtk.sentiment)}')` : null;
+
+                                            // Check if the existing triplets has the same pair IDs in the same order
+                                            const isDuplicatedTriplet = triplets.some(existingTriplets => {
+                                                return existingTriplets === newTriplet;
+                                            });
+                                            // Only push if not a duplicate
+                                            if (newTriplet && !isDuplicatedTriplet) {
+                                                triplets.push(newTriplet);
+                                            }
+
+                                            // helper variables to decide if the newQuadruplet should be pushed to the array `quadruplets`
+                                            const pairStr = wtk.itemType === 'Asp'? `([${tkidStr}], [${pairIDStr}],`: `([${pairIDStr}], [${tkidStr}],`;
+                                            const isDuplicatedQuadruplet = quadruplets.some(existingQuadruplet => {return existingQuadruplet === newQuadruplet;});
+                                            let to_replace_Idx = null;
+                                            const pairExists = quadruplets.some(existingQuadruplet => {
+                                                if (existingQuadruplet.includes(pairStr)) {
+                                                    to_replace_Idx = quadruplets.indexOf(existingQuadruplet);  // save index in case need to be replaced;
+                                                    return true;
+                                                } else {
+                                                    return false;
+                                                }                                                                                }
+                                            );
+                                            const pairIDInOtherPair = quadruplets.some(existingQuadruplet => {
+                                                return (existingQuadruplet.includes(pairIDStr) && !existingQuadruplet.includes(pairStr))
+                                            });
+
+                                            // Check 1: If (the quadruplet does not exit in the array) AND (pair not in array || this is the only one in the linked pair that is categorised), push;
+                                            // else
+                                            // Check 2: For the one-to-many scenarios where all Asp, Opn are assigned categories (let Asp = [X,Y], Opn=[A,B], Category=[1,2])  notation: Asp-Opn-Category:
+                                            // 1) Multi-opinion aspect:  X-A-1 (not important), X-B-1 (labelled on Asp), X-B-2 (labelled on Opn) **
+                                            //     Goal: If one of Asp or Opn is categorised, take it; if both, only take the quadruplet from OPN.
+                                            //   Rule-1: If pair exists in array: Overwrite with current if wtk is Opn, otherwise (wtk is Asp) refuse to push.
+                                            // and
+                                            // 2) Multi-aspect opinion:  X-A-1 (not important), Y-A-1 (labelled on Asp) **, Y-A-2 (labelled on Opn)
+                                            //     Goal: If one of Asp or Opn is categorised, take it; if both, only take the quadruplet from ASP.
+                                            //   Rule-2: If pair exists in array: Overwrite with current if wtk is ASP, otherwise (wtk is Opn) refuse to push.
+                                            // -->
+                                            //   If wtk is Opn && A-O pair in array && linkedPair in array with another Opn ==> Scenario 1 ==> use Rule 1
+                                            //   If wtk is Asp && A-O pair in array && linkedPair in array with another Asp ==> Scenario 2 ==> Use Rule 2
+                                            // ==> For either Asp or Opn, if current pair in array && linkedPair in array with another partner
+                                            //               ==> the linkedPair is multi-linked  ==> use the current quadruplet instead.
+
+                                            const straight_push = (!isDuplicatedQuadruplet && ((linkedPair && !linkedPair.categorised) || !pairExists));  // can push if this is True
+                                            const replace_with_current = (!isDuplicatedQuadruplet && pairExists && pairIDInOtherPair); // replace existing quad with the same pairStr with the current quadruplet
+
+                                            // Conditionally decide whether to push the current quadruplet into the array
+                                            if (straight_push) {
+                                                quadruplets.push(newQuadruplet);
+                                            } else if (replace_with_current) {
+                                                quadruplets[to_replace_Idx] = newQuadruplet;
+                                            }
                                         } else {
                                             wtk.tkFinal = wtk.tk.trim(); //otherwise use original token
                                         };
                                         return wtk;
                                     })
                                     .value();
-
                                 // construct the masked-version sentence
-                                const maskedSentence = temp.map((v, i) => (v.tkFinal.trim().length === 0 ? '' : i === 0 || v.tkFinal.match(/^[\p{P}\p{S}]+$/gu) ? v.tkFinal : ` ${v.tkFinal}`)).join('').trim();
+                                const maskedSentence = temp.map((v, i) => {
+                                    const tkfinal = v.tkFinal.trim();
+                                    if (tkfinal.length === 0) {
+                                        return '';
+                                    }
+                                    // If it's the first token OR the token is punctuation/symbol, don't prepend a space.
+                                    return i === 0 || tkfinal.match(/^[\p{P}\p{S}]+$/u) ? tkfinal : ` ${tkfinal}`;
+                                }).join('').trim();
 
                                 // extract sentiment for annotated tokens
                                 const ASCpairs = _.chain(temp)
@@ -1403,12 +1611,53 @@
                                     .pick(["tk", "sentiment"])
                                     .value();
 
+                                // -------- Convert ID-based quadruplets to token-based ones -------
+                                currentJsonOutput.Quadruplets = quadruplets.map(quad => {
+
+                                    const matches = quad.match(/\[([^\]]+)\], \[([^\]]+)\], '([^']+)', '([^']+)'/);
+                                    if (!matches) return null;
+                                    const [, aspIndices, opnIndices, category, sentiment] = matches; // first "," to skip first return which is the whole array
+
+                                    try {
+                                        // Use "course" as default aspect when aspIndices is "null"
+                                        const aspect = aspIndices === "null" ? "null" :
+                                            aspIndices.split(', ')
+                                                .map(i => parseInt(i))
+                                                .filter(i => vCopy[i] && vCopy[i].tk)
+                                                .map(i => vCopy[i].tk)
+                                                .join(' ').trim();
+
+                                        const opinion = opnIndices.split(', ')
+                                            .map(i => parseInt(i))
+                                            .filter(i => vCopy[i] && vCopy[i].tk)
+                                            .map(i => vCopy[i].tk)
+                                            .join(' ').trim();
+
+                                        if (!opinion) return null;  // Only check opinion now since aspect will always have value
+
+                                        // helper functions/ objects to format category and sentiment labels
+                                        const properCase = str => str.split('-').map(word => _.upperFirst(_.toLower(word))).join(' - '); // turn POS into Positive, etc.
+                                        const mapping = { 'POS': 'Positive',  'NEU': 'Neutral', 'NEG': 'Negative'}; // turn upper-case category label into proper-casing
+
+                                        return {
+                                            aspect,
+                                            opinion,
+                                            category: properCase(category),
+                                            sentiment: mapping[sentiment] || sentiment
+                                        };
+                                    } catch (error) {
+                                        console.error('Error processing quadruplet:', error);
+                                        return null;
+                                    }
+                                }).filter(q => q !== null);
+
                                 ASCTempOutput.push({ sentence: maskedSentence, ASCpairs: [ASCpairs] });
-                                ASTETempOutput.push({ sentence: rawSentence, triplets: triplets })
-                                ASQETempOutput.push({ sentence: rawSentence, quadruplets: quadruplets })
+                                ASTETempOutput.push({ sentence: rawSentence_for_spantagging, triplets: triplets })
+                                ASQETempOutput.push({ sentence: rawSentence_for_spantagging, quadruplets: quadruplets })
                             });
-                        };
-                        let tempResult = { ASCTempOutput, ASTETempOutput, ASQETempOutput };
+                        }
+                        //------------ Add currentJsonOutput to tempResult---------
+                        let tempResult = { ASCTempOutput, ASTETempOutput, ASQETempOutput, currentJsonOutput };
                         return tempResult;
                     })
                     .flatten().value();
@@ -1489,7 +1738,7 @@
                         // item is an array of two elements:
                         // [{"0": {"tkid": "R1_0","tk": ""}, "1": {"tkid": "R1_1","tk": "iPhone13"}, ..},  "Pos"]
                             let sentence = _.values(item[0])
-                                .map((v, i) => (_.size(v.tk.trim())===0? '' : i === 0 || v.tk.match(/^[\p{P}\p{S}]+$/gu)? v.tk : ` ${v.tk}`))
+                                .map((v, i) => (_.size(v.tk.trim())===0? '' : i === 0 || v.tk.match(/^[\p{P}\p{S}]+$/gu)? v.tk.trim() : ` ${v.tk.trim()}`))
                                 .join('').trim();
 
                             let sentiment = _.values(item[1]).join('');
@@ -1515,14 +1764,20 @@
                 // Export progress file to continue after upload
                 const dateStr = new Date().toISOString().split('T')[0];  // Get current date in yyyy-mm-dd format
                 let JSONworkingFile = JSON.stringify(this.preABSAData);
+                let ASQEJsonOutput = JSON.stringify(_.chain(resultData)
+                        .map(data => data.currentJsonOutput)
+                        .keyBy('id')
+                        .value(), null, 2);
 
-                // ======= export a 3-in-1 zip file ===============
+                // ======= export an all-in-1 zip file ===============
+                original_name_chunk = this.filename? `_[${this.filename.substring(0, this.filename.lastIndexOf('.'))}]`: "";
                 const files = [
-                    { file: ASQETrainingSet.join("\r\n"), filename: "ASQETrainingSet.txt" },
-                    { file: ASTETrainingSet.join("\r\n"), filename: "ASTETrainingSet.txt" },
-                    { file: ABSATrainingSet.join("\r\n"), filename: "custom.apc.train.txt" },
-                    { file: SATrainingSet, filename: "SATrainingSet.csv" },
-                    { file: JSONworkingFile, filename: "ASQE_DPT_Progress_File.json" }
+                    { file: ASQETrainingSet.join("\r\n"), filename: `ASQETrainingSet${original_name_chunk}.txt` },
+                    { file: ASTETrainingSet.join("\r\n"), filename: `ASTETrainingSet${original_name_chunk}.txt` },
+                    { file: ABSATrainingSet.join("\r\n"), filename: `custom.apc.train${original_name_chunk}.txt` },
+                    { file: SATrainingSet, filename: `SATrainingSet${original_name_chunk}.csv` },
+                    { file: JSONworkingFile, filename: `ASQE_DPT_Progress_File_${original_name_chunk}.json` },
+                    { file: ASQEJsonOutput, filename: `ASQEJsonFile${original_name_chunk}.json` }
                 ];
 
                 const zip = new JSZip();
@@ -1537,7 +1792,7 @@
                 zip.generateAsync({ type: 'blob' })
                     .then((blob) => {
                         // Save or download the generated zip file
-                        saveAs(blob, `ASQE_DPT_output_${dateStr}.zip`);
+                        saveAs(blob, `ASQE_DPT_output${original_name_chunk}_${dateStr}.zip`);
                     })
                     .catch((error) => {
                         console.error('Error creating zip file:', error);
