@@ -159,8 +159,11 @@
 <div id='ABSADPT'>
     <div class="container table-responsive">
         <br>
-        <h4>ASQE_DPT: A multi-task manual data annotation tool for ABSA <a href="https://github.com/yhua219/edurabsa_dataset_and_annotation_tool?tab=readme-ov-file#the-asqe-dpt-data-processing-tool" target="_blank">(info)</a></h4>
-        <div v-show="tableReady">Using file: &nbsp; {{filename}}</div>
+            <div style="display: flex; justify-content: flex-start; align-items: center; gap: 80px;">
+                <h4>ASQE_DPT: A multi-task manual data annotation tool for ABSA <a href="https://github.com/yhua219/edurabsa_dataset_and_annotation_tool?tab=readme-ov-file#the-asqe-dpt-data-processing-tool" target="_blank">(info)</a></h4>
+                <p style="margin-bottom: 0; font-size: 0.9rem;">version {{version}}</p>
+            </div>
+            <div v-show="tableReady">Using file: &nbsp; {{filename}}</div>
         <br>
         <div class="row">
             <div class="col">
@@ -428,6 +431,7 @@
     const ABSADPT = Vue.createApp({
         data() {
             return {
+                version: "1.1",
                 auto_input_data: null,
                 processed_auto_input_data: null,
                 has_auto_input: false,
